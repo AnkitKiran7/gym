@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gym Exercise Guide — MWF Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #181818;
+    --card: #1c1c1c;
+    --border: #2a2a2a;
+    --accent: #e8ff47;
+    --text: #f0f0f0;
+    --muted: #777;
+    --monday: #4fc3f7;
+    --wednesday: #81c784;
+    --friday: #ffb74d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+  header {
+    padding: 2.5rem 2rem 1.8rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    letter-spacing: 5px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  header p { color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; letter-spacing: 1.5px; text-transform: uppercase; }
+
+  .day-tabs {
+    display: flex;
+    justify-content: center;
+    padding: 1.2rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,15,15,0.97);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    gap: 0;
+  }
+  .day-tab {
+    padding: 0.6rem 1.8rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .day-tab:first-child { border-radius: 6px 0 0 6px; }
+  .day-tab:last-child { border-radius: 0 6px 6px 0; }
+  .day-tab:hover { color: var(--text); }
+  .day-tab.active[data-day="monday"] { background: var(--monday); color: #000; border-color: var(--monday); font-weight: 700; }
+  .day-tab.active[data-day="wednesday"] { background: var(--wednesday); color: #000; border-color: var(--wednesday); font-weight: 700; }
+  .day-tab.active[data-day="friday"] { background: var(--friday); color: #000; border-color: var(--friday); font-weight: 700; }
+
+  .day-panel { display: none; padding: 2rem; max-width: 1280px; margin: 0 auto; }
+  .day-panel.active { display: block; }
+
+  .day-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .day-header h2 { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; letter-spacing: 4px; line-height: 1; }
+  .day-header span { color: var(--muted); font-size: 0.88rem; margin-bottom: 6px; letter-spacing: 0.5px; }
+
+  .exercises-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .exercise-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.18s, box-shadow 0.2s;
+  }
+  .exercise-card:hover {
+    border-color: #3a3a3a;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+
+  .card-top {
+    padding: 1.2rem 1.4rem 0.8rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .card-top-left { flex: 1; }
+  .exercise-name { font-size: 1.05rem; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .muscle-tag { font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+  .sets-badge {
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--surface);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-weight: 500;
+  }
+
+  /* YouTube embed */
+  .yt-wrap {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    background: #000;
+    overflow: hidden;
+  }
+  .yt-wrap iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+  }
+  .yt-thumb {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111;
+    transition: opacity 0.2s;
+  }
+  .yt-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.75;
+    transition: opacity 0.2s;
+  }
+  .yt-thumb:hover img { opacity: 0.9; }
+  .play-btn {
+    position: absolute;
+    width: 62px; height: 62px;
+    background: rgba(0,0,0,0.75);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255,255,255,0.3);
+    transition: background 0.2s, transform 0.15s;
+    pointer-events: none;
+  }
+  .yt-thumb:hover .play-btn {
+    background: #ff0000;
+    transform: scale(1.08);
+    border-color: #ff0000;
+  }
+  .play-btn svg { margin-left: 5px; }
+  .yt-label {
+    position: absolute;
+    bottom: 8px;
+    left: 10px;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.6);
+    background: rgba(0,0,0,0.55);
+    padding: 2px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    letter-spacing: 0.5px;
+  }
+
+  .card-info {
+    padding: 1rem 1.4rem 1.4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+  }
+  .info-block { grid-column: 1 / -1; }
+  .info-block.half { grid-column: span 1; }
+  .info-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    margin-bottom: 3px;
+    font-weight: 600;
+  }
+  .info-text { font-size: 0.84rem; color: #ccc; line-height: 1.5; }
+  .mistake { color: #ff7070; font-size: 0.82rem; line-height: 1.5; }
+  .tip-box {
+    grid-column: 1 / -1;
+    background: #161f10;
+    border-left: 3px solid var(--accent);
+    padding: 0.7rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.82rem;
+    color: #bdd9a8;
+    line-height: 1.55;
+  }
+  .breath-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.82rem;
+    color: #aaa;
+    flex-wrap: wrap;
+  }
+  .b-in { color: #4fc3f7; font-weight: 500; }
+  .b-out { color: #81c784; font-weight: 500; }
+
+  .divider { height: 1px; background: var(--border); margin: 0.2rem 0; grid-column: 1/-1; }
+
+  footer {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    color: var(--muted);
+    font-size: 0.78rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+    line-height: 2;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Exercise Guide</h1>
+  <p>22M · 162cm · 59kg &nbsp;·&nbsp; Monday / Wednesday / Friday &nbsp;·&nbsp; Full Gym</p>
+</header>
+
+<div class="day-tabs">
+  <button class="day-tab active" data-day="monday" onclick="switchDay('monday')">🔴 &nbsp;Monday — Push</button>
+  <button class="day-tab" data-day="wednesday" onclick="switchDay('wednesday')">🟢 &nbsp;Wednesday — Legs</button>
+  <button class="day-tab" data-day="friday" onclick="switchDay('friday')">🔵 &nbsp;Friday — Pull</button>
+</div>
+
+<!-- ==================== MONDAY ==================== -->
+<div class="day-panel active" id="panel-monday">
+  <div class="day-header">
+    <h2 style="color:var(--monday)">Monday</h2>
+    <span>Push — Chest · Shoulders · Triceps + Leg Accessory</span>
+  </div>
+  <div class="exercises-grid">
+
+    <!-- BENCH PRESS -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Bench Press</div>
+          <div class="muscle-tag">Chest · Triceps · Front Delts</div>
+        </div>
+        <span class="sets-badge">4 × 8–10</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'dSmFoC_yqgc')">
+          <img src="https://img.youtube.com/vi/dSmFoC_yqgc/hqdefault.jpg" alt="Bench Press tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Jeff Nippard — Bench Press</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Key cue</div><div class="info-text">Retract shoulder blades before every rep. Chest up, shoulders back and down.</div></div>
+        <div class="info-block half"><div class="info-label">Bar path</div><div class="info-text">Touch lower chest. Elbows at 45–60°, never flared wide.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Bouncing bar off chest · Hips lifting off bench · Elbows flaring 90° out</div></div>
+        <div class="tip-box">💡 Spine tip: Slight natural arch in lower back is fine and protective. Squeeze shoulder blades like cracking a walnut. This is the #1 form cue for shoulder health.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-in">Inhale ↓</span> on descent — <span class="b-out">Exhale ↑</span> on press</div></div>
+      </div>
+    </div>
+
+    <!-- OVERHEAD PRESS -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Overhead Press</div>
+          <div class="muscle-tag">Shoulders · Triceps · Upper Traps</div>
+        </div>
+        <span class="sets-badge">3 × 8–10</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'F3QY5vMz_6I')">
+          <img src="https://img.youtube.com/vi/F3QY5vMz_6I/hqdefault.jpg" alt="Overhead Press tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Jeff Nippard — Overhead Press</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Core</div><div class="info-text">Brace abs + squeeze glutes the entire set. Zero lower back arch.</div></div>
+        <div class="info-block half"><div class="info-label">Head</div><div class="info-text">Tuck chin as bar passes face. Push head through at lockout.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Leaning back excessively · Not locking out at top · Bar path drifting forward</div></div>
+        <div class="tip-box">💡 Spine tip: OHP is a full spinal alignment test every rep. Neutral spine, braced core. Strengthens deep stabilizing muscles around your thoracic spine.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-in">Big inhale</span> before press — <span class="b-out">Exhale</span> at lockout</div></div>
+      </div>
+    </div>
+
+    <!-- INCLINE DB PRESS -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Incline DB Press</div>
+          <div class="muscle-tag">Upper Chest · Front Delts</div>
+        </div>
+        <span class="sets-badge">3 × 10–12</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'8iPEnn-ltC8')">
+          <img src="https://img.youtube.com/vi/8iPEnn-ltC8/hqdefault.jpg" alt="Incline DB Press tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Incline Dumbbell Press — Form Guide</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Angle</div><div class="info-text">Set bench to 30–45°. Higher angle = shoulder press, not chest.</div></div>
+        <div class="info-block half"><div class="info-label">Range</div><div class="info-text">Full stretch at bottom, hard squeeze at top. No half reps.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Incline too steep · Short range of motion · Uneven dumbbell height</div></div>
+        <div class="tip-box">💡 Spine tip: Upper back stays fully in contact with bench. Scapulae retracted and depressed — same as flat bench press.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-in">Inhale ↓</span> descent — <span class="b-out">Exhale ↑</span> press</div></div>
+      </div>
+    </div>
+
+    <!-- LATERAL RAISES -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Lateral Raises</div>
+          <div class="muscle-tag">Side Delts</div>
+        </div>
+        <span class="sets-badge">3 × 12–15</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'XPPfnSEATJA')">
+          <img src="https://img.youtube.com/vi/XPPfnSEATJA/hqdefault.jpg" alt="Lateral Raises tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Lateral Raises — Proper Form</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Height</div><div class="info-text">Raise to shoulder height ONLY. Above that = traps, not side delts.</div></div>
+        <div class="info-block half"><div class="info-label">Tilt</div><div class="info-text">Tilt DBs slightly — little finger higher than thumb. Like pouring water.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Heavy weight + swinging · Raising above shoulders · Shrugging traps</div></div>
+        <div class="tip-box">💡 Spine tip: Stand perfectly upright — neutral spine, slight knee bend. Lateral raises done with control reinforce upright posture under load.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale ↑</span> raise — <span class="b-in">Inhale ↓</span> lower</div></div>
+      </div>
+    </div>
+
+    <!-- TRICEP PUSHDOWN -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Tricep Pushdown</div>
+          <div class="muscle-tag">Triceps</div>
+        </div>
+        <span class="sets-badge">3 × 12</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'2-LAMcpzODU')">
+          <img src="https://img.youtube.com/vi/2-LAMcpzODU/hqdefault.jpg" alt="Tricep Pushdown tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Cable Tricep Pushdown — Form Guide</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Key cue</div><div class="info-text">Elbows pinned to your ribs. Only forearms move — nothing else.</div></div>
+        <div class="info-block half"><div class="info-label">Lockout</div><div class="info-text">Fully extend arms. Squeeze triceps hard for 1 second at bottom.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Elbows drifting out from sides · Using bodyweight to push · No lockout</div></div>
+        <div class="tip-box">💡 Spine tip: Slight forward hinge at hips keeps torso stable without loading the lower back. Core stays braced.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale</span> pushing down — <span class="b-in">Inhale</span> returning up</div></div>
+      </div>
+    </div>
+
+    <!-- DIAMOND PUSH-UPS -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Diamond Push-ups</div>
+          <div class="muscle-tag">Triceps · Chest (Calisthenics Finisher)</div>
+        </div>
+        <span class="sets-badge">2 × max</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'J0DXGHYOcT0')">
+          <img src="https://img.youtube.com/vi/J0DXGHYOcT0/hqdefault.jpg" alt="Diamond Push-ups tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Diamond Push-ups — Proper Form</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Hands</div><div class="info-text">Index fingers + thumbs form a diamond under your chest.</div></div>
+        <div class="info-block half"><div class="info-label">Body</div><div class="info-text">Rigid plank — head to heel. Zero hip sag or raised backside.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Hips sagging · Elbows flaring wide · Partial range of motion</div></div>
+        <div class="tip-box">💡 Spine tip: Best bodyweight spinal alignment drill. Brace core before you start. This is also your calisthenics strength benchmark — track your max reps weekly.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-in">Inhale ↓</span> down — <span class="b-out">Exhale ↑</span> push up</div></div>
+      </div>
+    </div>
+
+    <!-- LEG PRESS -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Leg Press</div>
+          <div class="muscle-tag">Quads · Glutes (Monday Accessory)</div>
+        </div>
+        <span class="sets-badge">3 × 10</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'IZxyjW7LOLM')">
+          <img src="https://img.youtube.com/vi/IZxyjW7LOLM/hqdefault.jpg" alt="Leg Press tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Leg Press — Form & Mistakes</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Feet</div><div class="info-text">Shoulder-width on mid-platform. Toes pointed slightly out.</div></div>
+        <div class="info-block half"><div class="info-label">Depth</div><div class="info-text">90° knee angle max. Deeper = lower back rounds off the pad.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Lower back peeling off pad · Knees caving in · Locking knees at top</div></div>
+        <div class="tip-box">💡 Spine tip: Full back contact with the pad at all times. If your lower back rounds at the bottom, reduce depth or reduce weight immediately.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-in">Inhale ↓</span> lower — <span class="b-out">Exhale ↑</span> press</div></div>
+      </div>
+    </div>
+
+    <!-- LEG CURL Monday -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Leg Curl</div>
+          <div class="muscle-tag">Hamstrings (Monday Accessory)</div>
+        </div>
+        <span class="sets-badge">3 × 12</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'Orxowest56U')">
+          <img src="https://img.youtube.com/vi/Orxowest56U/hqdefault.jpg" alt="Leg Curl tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Lying Leg Curl — Proper Form</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Key cue</div><div class="info-text">Press hips into pad throughout. Curl heels toward glutes fully.</div></div>
+        <div class="info-block half"><div class="info-label">Tempo</div><div class="info-text">2 sec curl up, 2–3 sec slow lower. Slow negatives = muscle growth.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Hips rising off pad · Swinging with momentum · Short range of motion</div></div>
+        <div class="tip-box">💡 Spine tip: Prone position naturally decompresses the lumbar spine. Keep pelvis neutral — don't tuck or hyperextend throughout the set.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale ↑</span> curl up — <span class="b-in">Inhale ↓</span> lower</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== WEDNESDAY ==================== -->
+<div class="day-panel" id="panel-wednesday">
+  <div class="day-header">
+    <h2 style="color:var(--wednesday)">Wednesday</h2>
+    <span>Legs + Core — Heavy Day</span>
+  </div>
+  <div class="exercises-grid">
+
+    <!-- BARBELL SQUAT -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Barbell Squat</div>
+          <div class="muscle-tag">Quads · Glutes · Hamstrings</div>
+        </div>
+        <span class="sets-badge">4 × 8–10</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'bEv6CCg2BC8')">
+          <img src="https://img.youtube.com/vi/bEv6CCg2BC8/hqdefault.jpg" alt="Barbell Squat tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Jeff Nippard — How To Squat</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Depth</div><div class="info-text">Hip crease BELOW the knees. Anything above is a partial squat.</div></div>
+        <div class="info-block half"><div class="info-label">Knees</div><div class="info-text">Push knees out in line with toes. Never let them cave inward (valgus).</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Knees caving in · Heels lifting off floor · Good morning squat (torso folds forward)</div></div>
+        <div class="tip-box">💡 Spine tip: Valsalva maneuver — big breath in, brace 360° like someone will punch your stomach. This is your natural spinal protection belt under heavy load. Never skip this.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-in">Big breath + brace</span> before descending — <span class="b-out">Exhale</span> at top</div></div>
+      </div>
+    </div>
+
+    <!-- ROMANIAN DEADLIFT -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Romanian Deadlift</div>
+          <div class="muscle-tag">Hamstrings · Glutes · Lower Back</div>
+        </div>
+        <span class="sets-badge">3 × 10</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'JCXUYuzwNrM')">
+          <img src="https://img.youtube.com/vi/JCXUYuzwNrM/hqdefault.jpg" alt="Romanian Deadlift tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Romanian Deadlift — Complete Guide</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Hip hinge</div><div class="info-text">Push hips BACK — not down. Feel the hamstring stretch. This is not a squat.</div></div>
+        <div class="info-block half"><div class="info-label">Bar path</div><div class="info-text">Bar stays touching your legs the whole way — drags from thighs to shins.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Rounding lower back · Bending knees too much · Bar drifting away from body</div></div>
+        <div class="tip-box">💡 Spine tip: The RDL teaches neutral spine under load better than almost any exercise. Master this and your posture in everyday life improves dramatically. Think "long spine from tailbone to crown."</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-in">Inhale + brace</span> before hinging — <span class="b-out">Exhale</span> driving hips forward</div></div>
+      </div>
+    </div>
+
+    <!-- LEG EXTENSION -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Leg Extension</div>
+          <div class="muscle-tag">Quads</div>
+        </div>
+        <span class="sets-badge">3 × 12</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'YyvSfVjQeL0')">
+          <img src="https://img.youtube.com/vi/YyvSfVjQeL0/hqdefault.jpg" alt="Leg Extension tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Leg Extension — Proper Form</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Setup</div><div class="info-text">Knee joint must align with machine pivot. Adjust seat before starting.</div></div>
+        <div class="info-block half"><div class="info-label">Squeeze</div><div class="info-text">Fully extend and hold — squeeze quad hard for 1 second at top.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Seat too far from pivot · Not fully extending · Using momentum to swing</div></div>
+        <div class="tip-box">💡 Spine tip: Sit upright, lower back pressed into pad. No leaning forward — that shifts stress away from quads and onto your spine.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale</span> extending — <span class="b-in">Inhale</span> lowering</div></div>
+      </div>
+    </div>
+
+    <!-- LEG CURL Wednesday -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Leg Curl</div>
+          <div class="muscle-tag">Hamstrings</div>
+        </div>
+        <span class="sets-badge">3 × 12</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'Orxowest56U')">
+          <img src="https://img.youtube.com/vi/Orxowest56U/hqdefault.jpg" alt="Leg Curl tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Lying Leg Curl — Proper Form</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Key cue</div><div class="info-text">Hips pressed into pad the whole set. Curl heels to glutes fully.</div></div>
+        <div class="info-block half"><div class="info-label">Tempo</div><div class="info-text">2 sec up, 2–3 sec slow lower. Controlled negative = most growth.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Hips rising off pad · Swinging with momentum · Stopping short of full range</div></div>
+        <div class="tip-box">💡 Spine tip: Prone decompresses the lumbar. Neutral pelvis throughout — don't tuck or hyperextend.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale ↑</span> curl up — <span class="b-in">Inhale ↓</span> lower</div></div>
+      </div>
+    </div>
+
+    <!-- CALF RAISES -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Calf Raises</div>
+          <div class="muscle-tag">Gastrocnemius · Soleus</div>
+        </div>
+        <span class="sets-badge">4 × 15</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'gwLzBJYoWlI')">
+          <img src="https://img.youtube.com/vi/gwLzBJYoWlI/hqdefault.jpg" alt="Calf Raises tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Calf Raises — Form & Range of Motion</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Range</div><div class="info-text">Full stretch at bottom, full raise at top. Pause 1 second at peak.</div></div>
+        <div class="info-block half"><div class="info-label">Platform</div><div class="info-text">Use a raised step with heels hanging off for maximum range.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Bouncing at the bottom · No pause at top · Half range of motion</div></div>
+        <div class="tip-box">💡 Spine tip: Stand perfectly upright. Calf raises reinforce ankle-to-spine alignment — good posture here carries into how you walk and run every single day.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale ↑</span> rising — <span class="b-in">Inhale ↓</span> lowering</div></div>
+      </div>
+    </div>
+
+    <!-- HANGING KNEE RAISES -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Hanging Knee Raises</div>
+          <div class="muscle-tag">Core · Abs · Hip Flexors · Grip</div>
+        </div>
+        <span class="sets-badge">3 × 15</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'hdng3uzKvqU')">
+          <img src="https://img.youtube.com/vi/hdng3uzKvqU/hqdefault.jpg" alt="Hanging Knee Raises tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Hanging Knee Raises — Proper Form</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Key cue</div><div class="info-text">At top, tuck pelvis under (posterior tilt) — this is what activates your abs.</div></div>
+        <div class="info-block half"><div class="info-label">Control</div><div class="info-text">Lower legs slowly. No swinging or kipping — control is everything.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Swinging with momentum · No pelvic tilt at top · Shoulders shrugging up</div></div>
+        <div class="tip-box">💡 Spine tip: After your sets, do an extra 30-sec dead hang. It decompresses your entire spine — undoes hours of sitting. Also builds grip strength for pull-ups.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale ↑</span> raising knees — <span class="b-in">Inhale ↓</span> lowering</div></div>
+      </div>
+    </div>
+
+    <!-- PLANK -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Plank</div>
+          <div class="muscle-tag">Full Core · Transverse Abdominis · Spinal Stabilizers</div>
+        </div>
+        <span class="sets-badge">3 × 45 sec</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'pSHjTRCQxIw')">
+          <img src="https://img.youtube.com/vi/pSHjTRCQxIw/hqdefault.jpg" alt="Plank tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Perfect Plank Form — Jeff Cavaliere</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Body line</div><div class="info-text">Perfect straight line head to heel. No sagging hips, no raised backside.</div></div>
+        <div class="info-block half"><div class="info-label">Core cue</div><div class="info-text">Brace like someone's about to punch you. Squeeze glutes simultaneously.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Hips dropping or piking up · Holding breath · Head drooping forward</div></div>
+        <div class="tip-box">💡 Spine tip: The plank trains your transverse abdominis — your body's natural back belt. Master this and every other exercise becomes safer. It is the foundation of all spinal stability.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row">Slow controlled breathing throughout — never hold your breath during a plank</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== FRIDAY ==================== -->
+<div class="day-panel" id="panel-friday">
+  <div class="day-header">
+    <h2 style="color:var(--friday)">Friday</h2>
+    <span>Pull — Back · Biceps + Leg Accessory</span>
+  </div>
+  <div class="exercises-grid">
+
+    <!-- PULL-UPS -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Pull-ups</div>
+          <div class="muscle-tag">Lats · Biceps · Rear Delts (Calisthenics)</div>
+        </div>
+        <span class="sets-badge">4 × max</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'eGo4IYlbE5g')">
+          <img src="https://img.youtube.com/vi/eGo4IYlbE5g/hqdefault.jpg" alt="Pull-ups tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Jeff Nippard — How To Do Pull-ups</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Initiate</div><div class="info-text">Depress + retract scapulae FIRST, then drive elbows down to ribs. Don't just arm-pull.</div></div>
+        <div class="info-block half"><div class="info-label">Full hang</div><div class="info-text">Dead hang every rep — arms fully extended at bottom. Non-negotiable.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Kipping / swinging · Not reaching full hang · Shoulders shrugging up to ears</div></div>
+        <div class="tip-box">💡 Spine tip: After your sets, hang for 30 extra seconds. The dead hang decompresses your entire spine and undoes hours of sitting. Biggest free gift you can give your back.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale ↑</span> pulling up — <span class="b-in">Inhale ↓</span> lowering</div></div>
+      </div>
+    </div>
+
+    <!-- SEATED CABLE ROW -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Seated Cable Row</div>
+          <div class="muscle-tag">Mid Back · Lats · Biceps</div>
+        </div>
+        <span class="sets-badge">3 × 10–12</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'GZbfZ033f74')">
+          <img src="https://img.youtube.com/vi/GZbfZ033f74/hqdefault.jpg" alt="Seated Cable Row tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Seated Cable Row — Proper Form</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Pull target</div><div class="info-text">Pull to lower chest/upper abdomen. Elbows pass behind your torso.</div></div>
+        <div class="info-block half"><div class="info-label">Squeeze</div><div class="info-text">Squeeze shoulder blades hard at peak — hold for 1 second every rep.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Rounding back on return · Using torso momentum · No shoulder blade squeeze</div></div>
+        <div class="tip-box">💡 Spine tip: Your #1 posture-correcting exercise. Squeezing shoulder blades together directly counteracts the forward-rounded posture from hours of phone and desk use. Prioritise the squeeze above all.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale</span> pulling — <span class="b-in">Inhale</span> extending arms back</div></div>
+      </div>
+    </div>
+
+    <!-- LAT PULLDOWN -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Lat Pulldown</div>
+          <div class="muscle-tag">Lats · Teres Major · Biceps</div>
+        </div>
+        <span class="sets-badge">3 × 10–12</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'CAwf7n6Luuc')">
+          <img src="https://img.youtube.com/vi/CAwf7n6Luuc/hqdefault.jpg" alt="Lat Pulldown tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Lat Pulldown — Jeff Nippard</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Initiate</div><div class="info-text">Shoulders down first (depress scapulae), then drive elbows toward back pockets.</div></div>
+        <div class="info-block half"><div class="info-label">Target</div><div class="info-text">Bar to upper chest / clavicle. Never behind the neck — serious injury risk.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Pulling behind the neck · Leaning too far back · Pulling with biceps not lats</div></div>
+        <div class="tip-box">💡 Spine tip: Think "elbows to back pockets" — this cue externally rotates your shoulder and protects the rotator cuff from impingement every single rep.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale ↓</span> pulling down — <span class="b-in">Inhale ↑</span> returning</div></div>
+      </div>
+    </div>
+
+    <!-- DB BENT-OVER ROW -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">DB Bent-over Row</div>
+          <div class="muscle-tag">Lats · Mid Back · Rear Delts</div>
+        </div>
+        <span class="sets-badge">3 × 10</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'pYcpY20QaE8')">
+          <img src="https://img.youtube.com/vi/pYcpY20QaE8/hqdefault.jpg" alt="DB Bent-over Row tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Dumbbell Row — Proper Form</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Hinge</div><div class="info-text">Hip hinge to 45–60° from vertical. Back flat — not rounded, not hyperextended.</div></div>
+        <div class="info-block half"><div class="info-label">Row path</div><div class="info-text">Pull elbow past your hip — "elbow to back pocket." Feel the lat fully.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Rounding lower back · Not hinging enough · Short range of motion</div></div>
+        <div class="tip-box">💡 Spine tip: Teaches the hip hinge under load — critical for a healthy lower back in daily life. Mastering flat-back hinge means everything you pick off the floor is done safely.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale ↑</span> rowing up — <span class="b-in">Inhale ↓</span> lowering</div></div>
+      </div>
+    </div>
+
+    <!-- FACE PULLS -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Face Pulls</div>
+          <div class="muscle-tag">Rear Delts · Rotator Cuff · Posture</div>
+        </div>
+        <span class="sets-badge">3 × 15</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'rep-qVOkqgk')">
+          <img src="https://img.youtube.com/vi/rep-qVOkqgk/hqdefault.jpg" alt="Face Pulls tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Face Pulls — Jeff Cavaliere (Athlean-X)</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Cable height</div><div class="info-text">Set cable at forehead height. Pull rope to face, splitting at your ears.</div></div>
+        <div class="info-block half"><div class="info-label">External rotation</div><div class="info-text">At peak, rotate so hands go behind your ears. This is the whole exercise.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Elbows dropping below shoulder height · Going too heavy · No external rotation at peak</div></div>
+        <div class="tip-box">💡 Spine tip: The most underrated posture exercise in any gym. Directly strengthens the muscles that pull your shoulders back. Light weight, high reps, full rotation — every session without fail.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale</span> pulling to face — <span class="b-in">Inhale</span> extending out</div></div>
+      </div>
+    </div>
+
+    <!-- BARBELL CURL -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Barbell / DB Curl</div>
+          <div class="muscle-tag">Biceps · Brachialis</div>
+        </div>
+        <span class="sets-badge">3 × 12</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'ykJmrZ5v0Oo')">
+          <img src="https://img.youtube.com/vi/ykJmrZ5v0Oo/hqdefault.jpg" alt="Bicep Curl tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Bicep Curl — Jeff Nippard</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Elbows</div><div class="info-text">Elbows stay pinned to your sides. They must not travel forward when curling.</div></div>
+        <div class="info-block half"><div class="info-label">Supinate</div><div class="info-text">With DBs — rotate palms outward as you curl for full bicep contraction.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Swinging torso to lift · Elbows drifting forward · Dropping weight on way down</div></div>
+        <div class="tip-box">💡 Spine tip: Stand upright — neutral spine, core braced. Swinging curls put repeated stress on lumbar vertebrae over hundreds of reps. Never worth the ego lift.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale ↑</span> curling — <span class="b-in">Inhale ↓</span> 3-sec slow lower</div></div>
+      </div>
+    </div>
+
+    <!-- BULGARIAN SPLIT SQUAT -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Bulgarian Split Squat</div>
+          <div class="muscle-tag">Quads · Glutes · Hip Flexors (Friday Accessory)</div>
+        </div>
+        <span class="sets-badge">3 × 10 each</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'2C-uNgKwPLE')">
+          <img src="https://img.youtube.com/vi/2C-uNgKwPLE/hqdefault.jpg" alt="Bulgarian Split Squat tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Bulgarian Split Squat — Full Guide</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Front foot</div><div class="info-text">Far enough forward that front shin is vertical at the bottom of the squat.</div></div>
+        <div class="info-block half"><div class="info-label">Rear foot</div><div class="info-text">Laces on bench (not heel). Rear knee hovers just above floor at the bottom.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Front foot too close (knee shoots over toes) · Torso collapsing forward · Slamming rear knee</div></div>
+        <div class="tip-box">💡 Spine tip: If your torso falls forward, your hip flexors are tight — stretch them daily. Tight hip flexors are one of the biggest causes of lower back pain. This exercise reveals it and fixes it over time.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-in">Inhale ↓</span> descending — <span class="b-out">Exhale ↑</span> driving up</div></div>
+      </div>
+    </div>
+
+    <!-- CALF RAISES Friday -->
+    <div class="exercise-card">
+      <div class="card-top">
+        <div class="card-top-left">
+          <div class="exercise-name">Calf Raises</div>
+          <div class="muscle-tag">Calves (Friday Accessory)</div>
+        </div>
+        <span class="sets-badge">4 × 15</span>
+      </div>
+      <div class="yt-wrap">
+        <div class="yt-thumb" onclick="loadYT(this,'gwLzBJYoWlI')">
+          <img src="https://img.youtube.com/vi/gwLzBJYoWlI/hqdefault.jpg" alt="Calf Raises tutorial"/>
+          <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <span class="yt-label">Calf Raises — Form & Range of Motion</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="info-block half"><div class="info-label">Range</div><div class="info-text">Full stretch at bottom, full raise at top. Pause 1 second at peak.</div></div>
+        <div class="info-block half"><div class="info-label">Step</div><div class="info-text">Use a raised step with heels hanging off. Maximum range = maximum growth.</div></div>
+        <div class="divider"></div>
+        <div class="info-block"><div class="info-label">❌ Avoid</div><div class="mistake">Bouncing at bottom · No pause at top · Half range of motion</div></div>
+        <div class="tip-box">💡 Spine tip: Upright posture all the way. Good calf raises reinforce ankle-to-hip-to-spine alignment — the foundation of how you carry yourself every day.</div>
+        <div class="info-block"><div class="info-label">Breathing</div><div class="breath-row"><span class="b-out">Exhale ↑</span> rising — <span class="b-in">Inhale ↓</span> lowering</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>MWF Gym Plan · 22M · 162cm · 59kg · Build Muscle · Gain Strength · Calisthenics</p>
+  <p style="color:#444">Video credits: Jeff Nippard · Athlean-X (Jeff Cavaliere) · Renaissance Periodization</p>
+  <p style="color:#333; font-size:0.72rem">Click any thumbnail to load the YouTube video directly in the card</p>
+</footer>
+
+<script>
+  function switchDay(day) {
+    document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-day="' + day + '"]').classList.add('active');
+    document.getElementById('panel-' + day).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function loadYT(thumb, videoId) {
+    const wrap = thumb.parentElement;
+    const iframe = document.createElement('iframe');
+    iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0&modestbranding=1';
+    iframe.allow = 'autoplay; encrypted-media';
+    iframe.allowFullscreen = true;
+    wrap.replaceChild(iframe, thumb);
+  }
+</script>
+</body>
+</html>
