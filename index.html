@@ -36,11 +36,29 @@
     line-height: 1;
   }
   header p { color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; letter-spacing: 1.5px; text-transform: uppercase; }
+  .level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 1rem;
+    padding: 0.45rem 1.1rem;
+    border-radius: 20px;
+    border: 1px solid #3a3a3a;
+    background: #1a1a1a;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .level-dots { display: flex; gap: 4px; }
+  .level-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .level-dots span.filled { background: var(--accent); }
 
   .day-tabs {
     display: flex;
     justify-content: center;
-    padding: 1.2rem 2rem;
+    padding: 1.2rem 1rem;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -61,6 +79,7 @@
     letter-spacing: 1.2px;
     text-transform: uppercase;
     transition: all 0.2s;
+    white-space: nowrap;
   }
   .day-tab:first-child { border-radius: 6px 0 0 6px; }
   .day-tab:last-child { border-radius: 0 6px 6px 0; }
@@ -238,6 +257,80 @@
     margin-top: 2rem;
     line-height: 2;
   }
+
+  /* ===== MOBILE RESPONSIVE ===== */
+  @media (max-width: 640px) {
+    header {
+      padding: 1.8rem 1rem 1.2rem;
+    }
+    header p {
+      font-size: 0.72rem;
+      letter-spacing: 0.8px;
+    }
+
+    .day-tabs {
+      padding: 0.75rem 0.5rem;
+      gap: 0;
+      overflow-x: auto;
+      justify-content: flex-start;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .day-tabs::-webkit-scrollbar { display: none; }
+
+    .day-tab {
+      padding: 0.55rem 0.9rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+
+    .day-panel {
+      padding: 1.2rem 0.85rem;
+    }
+
+    .day-header h2 {
+      font-size: 2rem;
+      letter-spacing: 3px;
+    }
+    .day-header span {
+      font-size: 0.78rem;
+    }
+
+    .exercises-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .card-top {
+      padding: 1rem 1rem 0.6rem;
+    }
+    .exercise-name { font-size: 0.98rem; }
+
+    .card-info {
+      padding: 0.8rem 1rem 1.1rem;
+      gap: 0.6rem;
+    }
+
+    /* Stack the two half columns into full-width on very small screens */
+    .info-block.half { grid-column: 1 / -1; }
+
+    .play-btn {
+      width: 52px;
+      height: 52px;
+    }
+
+    .yt-label { font-size: 0.65rem; }
+
+    footer { padding: 2rem 1rem 1.5rem; font-size: 0.72rem; }
+  }
+
+  @media (max-width: 380px) {
+    .day-tab {
+      padding: 0.5rem 0.7rem;
+      font-size: 0.67rem;
+    }
+  }
 </style>
 </head>
 <body>
@@ -245,6 +338,10 @@
 <header>
   <h1>Exercise Guide</h1>
   <p>22M · 162cm · 59kg &nbsp;·&nbsp; Monday / Wednesday / Friday &nbsp;·&nbsp; Full Gym</p>
+  <div class="level-badge">
+    <div class="level-dots"><span class="filled"></span><span class="filled"></span><span></span><span></span><span></span></div>
+    Beginner → Intermediate
+  </div>
 </header>
 
 <div class="day-tabs">
@@ -271,8 +368,8 @@
         <span class="sets-badge">4 × 8–10</span>
       </div>
       <div class="yt-wrap">
-        <div class="yt-thumb" onclick="loadYT(this,'dSmFoC_yqgc')">
-          <img src="https://img.youtube.com/vi/dSmFoC_yqgc/hqdefault.jpg" alt="Bench Press tutorial"/>
+        <div class="yt-thumb" onclick="loadYT(this,'vcBig73ojpE')">
+          <img src="https://img.youtube.com/vi/vcBig73ojpE/hqdefault.jpg" alt="Bench Press tutorial"/>
           <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
           <span class="yt-label">Jeff Nippard — Bench Press</span>
         </div>
@@ -401,8 +498,8 @@
         <span class="sets-badge">2 × max</span>
       </div>
       <div class="yt-wrap">
-        <div class="yt-thumb" onclick="loadYT(this,'J0DXGHYOcT0')">
-          <img src="https://img.youtube.com/vi/J0DXGHYOcT0/hqdefault.jpg" alt="Diamond Push-ups tutorial"/>
+        <div class="yt-thumb" onclick="loadYT(this,'J0DnG1_S92I')">
+          <img src="https://img.youtube.com/vi/J0DnG1_S92I/hqdefault.jpg" alt="Diamond Push-ups tutorial"/>
           <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
           <span class="yt-label">Diamond Push-ups — Proper Form</span>
         </div>
@@ -427,8 +524,8 @@
         <span class="sets-badge">3 × 10</span>
       </div>
       <div class="yt-wrap">
-        <div class="yt-thumb" onclick="loadYT(this,'IZxyjW7LOLM')">
-          <img src="https://img.youtube.com/vi/IZxyjW7LOLM/hqdefault.jpg" alt="Leg Press tutorial"/>
+        <div class="yt-thumb" onclick="loadYT(this,'K5n2vg3oZa4')">
+          <img src="https://img.youtube.com/vi/K5n2vg3oZa4/hqdefault.jpg" alt="Leg Press tutorial"/>
           <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
           <span class="yt-label">Leg Press — Form & Mistakes</span>
         </div>
@@ -620,8 +717,8 @@
         <span class="sets-badge">3 × 15</span>
       </div>
       <div class="yt-wrap">
-        <div class="yt-thumb" onclick="loadYT(this,'hdng3uzKvqU')">
-          <img src="https://img.youtube.com/vi/hdng3uzKvqU/hqdefault.jpg" alt="Hanging Knee Raises tutorial"/>
+        <div class="yt-thumb" onclick="loadYT(this,'Pr1ieGZ5atk')">
+          <img src="https://img.youtube.com/vi/Pr1ieGZ5atk/hqdefault.jpg" alt="Hanging Knee Raises tutorial"/>
           <div class="play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
           <span class="yt-label">Hanging Knee Raises — Proper Form</span>
         </div>
